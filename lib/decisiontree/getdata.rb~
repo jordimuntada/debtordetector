@@ -1,0 +1,331 @@
+class GetData
+	attr_accessor :ptraining, :ptest, :fileset, :fileatt
+
+	# initializer, getters and setters
+if false
+	def initialize(filename)
+		@filename = filename
+	end
+end
+	def ptraining=(ptraining)
+		@ptraining = ptraining
+	end
+	def ptest=(ptest)
+		@ptest = ptest
+	end
+	def ptraining
+		@ptraining
+	end
+	def ptest
+		@ptest
+	end
+	def filename=(filename)
+		@filename = filename
+	end
+	def filename
+		@filename
+	end
+
+	def askinfo
+		puts "What data proportion from the dataset must be considered as Training Set? (%) "  
+		STDOUT.flush
+		@ptraining=STDIN.gets
+		puts "What data proportion from the dataset must be considered as Test Set? (%) "  
+		STDOUT.flush
+		@ptest=STDIN.gets
+		puts "Data Proportion assigned to Training Set - " + @ptraining
+		puts "Data Proportion assigned to Test Set - " + @ptest
+		puts "--------------------------------------------------------------------------------"
+	end
+
+	def report_arguments
+		puts "--------------------------------------------------------------------------------"
+		puts "Data Proportion assigned to Training Set [%] - " + @ptraining.to_s
+		puts "Data Proportion assigned to Test Set [%] - " + @ptest.to_s
+		puts "--------------------------------------------------------------------------------"
+	end
+	
+	def initMax (att)
+		att.max = MAX_DISCRETE_CONST
+		return att
+	end
+	
+	def initMin (att)
+		att.min = MIN_DISCRETE_CONST
+		return att
+	end
+	
+	def getMax(set, atts)
+		atts.each do |a|
+			if a.type == "continuous"
+				a = initMax(a)
+				i = 0
+				while i < set.count
+					# Next 2 lines are just applied in getMax because after its executation, set will be modified
+					## set[i].attributes[a.name][0]='' if set[i].attributes[a.name].include? ','
+					##puts "set[i].attributes["+a.name.to_s+"] ---> "+set[i].attributes[a.name].to_s
+					set[i].attributes[a.name][0]='' if set[i].attributes[a.name][0]=='"'
+					## set[i].attributes[a.name][-1]='' if set[i].attributes[a.name].include? ','
+					set[i].attributes[a.name][-1]='' if set[i].attributes[a.name][-1]=='"' # it should be -1
+					#puts "set[i].attributes[a.name] == " + set[i].attributes[a.name].to_s
+					a.max = set[i].attributes[a.name] if a.max.to_f < set[i].attributes[a.name].to_f
+					i+=1
+				end
+			end
+		end
+		return atts
+	end
+	
+	def getMin(set, atts)
+		atts.each do |a|
+			if a.type == "continuous"
+				a = initMin(a)
+				i = 0
+				while i < set.count
+					#set[i].attributes[a.name][0]='' if set[i].attributes[a.name].include? ','
+					#set[i].attributes[a.name][-1]='' if set[i].attributes[a.name].include? ','
+					a.min = set[i].attributes[a.name] if a.min.to_f > set[i].attributes[a.name].to_f
+					i+=1
+				end
+			end
+		end
+		return atts
+	end
+
+	# Legend that will be assigned to each element of the set regarding their corresponding values.
+	# VL = Very Low
+	# L = Low
+	# H = High
+	# VH = Very High
+	def discretize(set, atts, levels)
+		# First off, we get the max and min of each attributes in the matrix
+		atts = getMax(set, atts)
+		atts = getMin(set, atts)
+		atts.each do |a|
+			if a.type == "continuous"
+				if levels == 2
+					i = 0
+					diferencial = (a.max.to_f - a.min.to_f) / 2
+					while i < set.count
+						if set[i].attributes[a.name].to_f >= a.min.to_f and set[i].attributes[a.name].to_f < diferencial
+							set[i].attributes[a.name] = 'L'
+						else
+							if set[i].attributes[a.name].to_f >= diferencial and set[i].attributes[a.name].to_f <= a.max.to_f
+								set[i].attributes[a.name] = 'H'
+							else
+								puts "cucucucucucucucucutttt"
+							end
+						end
+						i+=1
+					end
+				else
+					if levels == 3
+						i = 0
+						diferencial = (a.max.to_f - a.min.to_f) / 3
+						while i < set.count
+							if set[i].attributes[a.name].to_f >= a.min.to_f and set[i].attributes[a.name].to_f < diferencial
+								set[i].attributes[a.name] = 'L'
+							else
+								if set[i].attributes[a.name].to_f >= diferencial and set[i].attributes[a.name].to_f < diferencial * 2
+									set[i].attributes[a.name] = 'M'
+								else
+									if set[i].attributes[a.name].to_f >= diferencial * 2 and set[i].attributes[a.name].to_f <= a.max.to_f
+										set[i].attributes[a.name] = 'H'
+									else
+										puts "cucucucucucucucucutttt"
+									end
+								end
+							end
+							i+=1
+						end
+					else
+						if levels == 4
+							i = 0
+							diferencial = (a.max.to_f - a.min.to_f) / 4
+							#puts "-- Discretize - borders --"
+							#puts "-- VL = "+diferencial.to_s
+							#puts "-- L = "+(diferencial*2).to_s
+							#puts "-- H = "+(diferencial*3).to_s
+							#puts "-- VH = "+(diferencial*4).to_s			
+							while i < set.count
+								if set[i].attributes[a.name].to_f >= a.min.to_f and set[i].attributes[a.name].to_f < diferencial
+									set[i].attributes[a.name] = 'VL'
+								else
+									if set[i].attributes[a.name].to_f >= diferencial and set[i].attributes[a.name].to_f < diferencial * 2
+										set[i].attributes[a.name] = 'L'
+									else
+										if set[i].attributes[a.name].to_f >= diferencial * 2 and set[i].attributes[a.name].to_f < diferencial * 3
+											set[i].attributes[a.name] = 'H'
+										else
+											if set[i].attributes[a.name].to_f >= diferencial * 3 and set[i].attributes[a.name].to_f <= a.max.to_f
+												set[i].attributes[a.name] = 'VH'
+											else
+												puts "cucucucucucucucucutttt"
+											end
+										end
+									end
+								end
+								i+=1
+							end
+						else
+							puts "It is impossible to accept "+levels.to_s+" levels of discretization"
+						end
+					end
+				end
+			end
+		end
+		return set
+	end
+	
+	def make_continuous(set, atts)
+		# we just need to convert the categorical attributes to continuous attributes
+		atts.each do |a|
+			if a.type == "categorical"
+				level_by_number = LEVEL_BY_NUMBER_CONST
+				num_vals = a.vals.count
+				i = 0
+				# we fill up the attributes with the new values instead of the previous discrete ones
+				while i < num_vals
+					a.vals[i] = [a.vals[i],level_by_number]
+					level_by_number += LEVEL_BY_NUMBER_CONST
+					i += 1
+				end
+				# we replace the old discrete values with the new continous values in the dataset
+				while i < set.count
+					if set[i].attributes[a.name]
+						j = 0
+						while j < num_vals
+							if set[i].attributes[a.name] == '"'+a.vals[j][0]+'"'
+								set[i].attributes[a.name] = a.vals[j][-1]
+							end
+							j += 1
+						end
+					end
+					i+=1
+				end
+			end
+		end
+		return set
+	end
+
+	def getInfo(attributes)
+		# handle examples, values should be in same order as attributes
+		set = []
+		aux = 0
+		#File.open(@fileset, 'r').each_line do |line|
+		###file = File.new(@fileset, 'r').each_line do |line|
+		file = File.new(@fileset, 'r')
+		file.each_line do |line|
+			if aux == 0
+				basura = line.chomp.split(';').map{|s| s.strip}
+				aux = 1
+			else
+				map = {}
+				atts = line.chomp.split(';').map{|s| s.strip}
+				classification = atts.pop
+				# if the number of attributes read from Info File ranges from 0 to amount of attributes in Atts File then
+				# the example just read is put in the overall set 
+				if atts.count > 0 and atts.count < (attributes.count + 1)
+					attributes.each do |attr|
+						map[attr.name] = atts.shift
+					end
+					set << Example.new(map, classification)
+				end
+			end
+			#break if file.lineno > 20 #to limit the number of row readings
+		end
+    		return set
+	end
+	
+	def getAttributes(levels)
+		# handle attributes
+		attributes = []
+		File.open(@fileatt, 'r').each_line do |line|
+			atts = line.chomp.split(';').map{|s| s.strip}
+			name = atts.shift.upcase
+			type = atts.shift
+			if type == "continuous"
+				#for continuous attributes; there are several range of levels: [VH,H,L,VL] , [H,M,L] , [H,L]
+				if levels == 2
+					atts << "H" << "L"
+				else
+					if levels == 3
+						atts << "H" << "M" << "L"
+					else
+						atts << "VH" << "H" << "L" << "VL"
+					end
+				end
+			end
+			i=0
+			while i<atts.count 
+				atts[i]=atts[i].upcase
+				i += 1
+			end
+			attributes << Attribute.new(name, type, atts)
+		end
+		att_aux = attributes.pop
+		info_classification = Classification.new(att_aux.name, att_aux.type, att_aux.vals)
+		return attributes,info_classification
+	end
+
+	def my_scramble(vector)
+		new_vector = []
+		front_index = 0
+		back_index = vector.length-1
+
+		while front_index <= back_index
+		  new_vector << vector[front_index]
+		  front_index += 1
+		  if front_index <= back_index
+		   new_vector << vector[back_index]
+		    back_index -= 1
+		  end
+		end
+		return new_vector
+	end
+
+	def getSets(examples, proportion_training, proportion_test)
+		trainingset = Array.new
+		training_final = Array.new
+		testset = Array.new
+		test_final = Array.new
+		part = Array.new
+		partitions = Array.new
+
+		total_examples = examples.size # first we need all the amount of examples counted
+		
+		# we calculate a concrete partition by CROSS_VALIDATION_PARTITIONS_CONST
+		number_partition = total_examples / CROSS_VALIDATION_PARTITIONS_CONST
+		count = 0
+		while count < CROSS_VALIDATION_PARTITIONS_CONST
+			part = []
+			acumulador = 0
+			while acumulador < number_partition
+				part << examples.pop
+				acumulador += 1
+			end
+			partitions << part
+			count += 1
+		end
+		#partitions.shuffle
+		#partitions.sort_by { rand }
+		partitions=my_scramble(partitions)
+		
+		count = 0
+		initial_border = total_examples - proportion_test
+		while initial_border < total_examples
+			testset << partitions.pop
+			initial_border += number_partition
+		end
+		trainingset = partitions
+		
+		testset.each do |test|
+			test_final.concat(test)
+		end
+		trainingset.each do |train|
+			training_final.concat(train)
+		end
+		
+		return training_final, test_final
+	end
+end

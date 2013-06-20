@@ -1,0 +1,5 @@
+sepallength;continuous
+sepalwidth;continuous
+petallength;continuous
+petalwidth;continuous
+CLASS;categorical;Iris-setosa;Iris-versicolor;Iris-virginica

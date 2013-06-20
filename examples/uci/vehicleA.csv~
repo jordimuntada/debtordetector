@@ -1,0 +1,19 @@
+COMPACTNESS;continuous
+CIRCULARITY;continuous
+DISTANCE CIRCULARITY;continuous
+RADIUS RATIO;continuous
+PR.AXIS ASPECT RATIO;continuous
+MAX.LENGTH ASPECT RATIO;continuous
+SCATTER RATIO;continuous
+ELONGATEDNESS;continuous
+PR.AXIS RECTANGULARITY;continuous
+MAX.LENGTH RECTANGULARITY;continuous
+SCALED VARIANCE_MAJOR;continuous
+SCALED VARIANCE_MINOR;continuous
+SCALED RADIUS OF GYRATION;continuous
+SKEWNESS ABOUT_MAJOR;continuous
+SKEWNESS ABOUT_MINOR;continuous
+KURTOSIS ABOUT_MAJOR;continuous
+KURTOSIS ABOUT_MINOR;continuous
+HOLLOWS RATIO;continuous
+Class;categorical;opel;saab;bus;van

@@ -1,0 +1,3 @@
+#require File.dirname(__FILE__) + '/morosity/getdata.rb'
+#require File.dirname(__FILE__) + '/morosity/customer.rb'
+Dir["/lib/morosity/*.rb"].each {|file| require file }

@@ -1,0 +1,9 @@
+Length;continuous
+Diameter;continuous
+Height;continuous
+Whole weight;continuous
+Shucked weight;continuous
+Viscera weight;continuous
+Shell weight;continuous
+Class_Rings;continuous
+Sex;categorical;M;F;I

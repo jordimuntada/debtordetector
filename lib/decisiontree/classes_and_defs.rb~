@@ -1,0 +1,130 @@
+# represents information of the classification
+# has a title and a list of possible values.
+class Classification
+	attr_reader :name, :vals, :type#, :max, :min
+	attr_accessor :max, :min
+	def initialize(name, type, vals)
+		@name = name
+		@type = type
+		@vals = vals
+		@max = MAX_DISCRETE_CONST # in "constants.rb"
+		@min = MIN_DISCRETE_CONST # in "constants.rb"
+	end
+end # end class Classification
+
+# represents an attribute to classify on
+# has a title and a list of possible values.
+class Attribute
+	attr_reader :name, :vals, :type#, :max, :min
+	attr_accessor :max, :min
+	def initialize(name, type, vals)
+		@name = name
+		@type = type
+		@vals = vals
+		@max = MAX_DISCRETE_CONST # in "constants.rb"
+		@min = MIN_DISCRETE_CONST # in "constants.rb"
+	end
+end # end class Attribute
+
+# represents an example, currently used for both training and to hold new info
+# classification isn't used if not known
+class Example
+	attr_reader :attributes, :classification
+	# attributes is a map of attr_name => class
+	# classification is what the decision should be for the example
+	def initialize(attributes, classification = nil)
+		@attributes = attributes
+		@classification = classification
+	end
+end # end class Example
+
+# checks if all examples have the same classification
+def one_classification? (set)
+    return true if set.empty?
+    c = set[0].classification
+    set.each do |s|
+        if s.classification != c
+            return false
+        end
+    end
+    return true
+end # end one_classification?
+
+def getClassification (ex)
+	#return -1 if ex.empty?	
+	return ex.classification
+end
+
+# finds the most popular classification among the examples
+def most_popular_classification(set)
+	#puts "most_popular_class = " +set.group_by{|s| s.classification}.sort[0].to_s
+	#return set.group_by{|s| s.classification}.sort[0]
+	set.group_by{|s| s.classification}.sort[0]
+end # end most_popular_classification
+
+# calculates the entropy regarding classification for the given examples
+def entropy(set,information_classification)
+	total = set.size # total amount of examples in set
+	classification_vector = Array.new(information_classification.vals) # get all classifications to divide on
+	# find number matching for each classification
+	num_p = Array.new
+	
+	classification_vector.each do |c|
+		# reading straight from "set" compells us to add '"' around c because STRINGS from set come with '"' around
+		num_p << set.find_all{|s| s.classification == '"'+c+'"'}.size # searching all examples that matches and counting them
+	end
+	###############################################################################################
+	################## CALCULATION OF ENTROPY
+	###############################################################################################
+	p = Array.new
+	i = 0
+	until i == classification_vector.count
+	   p << num_p[i].to_f/total # probability of matching = ratio of matches to total num examples
+	   i += 1
+	end
+	# avoid NAN/-infinity with log2(0)
+	if p.inject{|sum,x| sum + x } < 1
+		return 0
+	end
+	entropy = 0
+	i = 0
+	until i == classification_vector.count
+		entropy = entropy + (p[i]*Math.log2(p[i]))
+		i += 1
+	end
+	entropy = -(entropy).to_f
+	###############################################################################################
+	################### END OF ENTROPY CALCULATION
+	###############################################################################################
+	# calculate actual boolean entropy
+	return entropy
+end # end entropy
+
+# calculates the amount of information that would be gained
+# from splitting examples over the attribute
+def info_gain(atts, set, i_class)
+	# get entropy before split
+	current_entropy = entropy(set, i_class)
+	#puts "entropuyyyyyyy ==" + current_entropy.to_s
+	total = set.size
+	# for this attribute, group examples by possible values
+	#############groups = set.group_by{|s| puts "llllllllllll ---> "+s.attributes.to_s}
+	groups = set.group_by{|s| s.attributes['"'+atts.name+'"']}
+	# sum up entropy of each potential branch, subtract from
+	# current entropy to find gain
+	return current_entropy - groups.values.inject(0) do |sum, group|
+		prop = group.size.to_f/set.size
+		sum + (prop * entropy(group, i_class))
+	end
+end # end info_gain
+
+# finds the attribute to divide examples over which provides the
+# most information gain.
+def best_attribute(set, atts, i_class)
+	# get attribute providing highest info_gain
+	#gain = Array.new
+	#atts.each do |a| gain << info_gain(a, set, i_class) end
+	#puts "## max gain --> "+gain.max.to_s
+	#return gain.max
+	atts.sort_by { |a| info_gain(a, set, i_class) }[-1]
+end # end best_attribute

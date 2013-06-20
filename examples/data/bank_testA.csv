@@ -1,0 +1,11 @@
+age;continuous
+sex;categorical;male;female
+income;continuous
+married;categorical;no;yes
+children;categorical;0;1;2;3
+car;categorical;no;yes
+save_act;categorical;no;yes
+current_act;categorical;no;yes
+mortgage;categorical;no;yes
+pep;categorical;no;yes
+region;categorical;inner_city;town;rural

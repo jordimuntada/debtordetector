@@ -1,0 +1,5 @@
+--- 
+open_files: 
+  - knn.rb
+  - methods.rb
+  - objects.rb

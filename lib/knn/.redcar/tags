@@ -1,0 +1,45 @@
+1348585880
+Attribute	/home/jrd/tfm/lib/knn/objects.rb	class Attribute
+Classification	/home/jrd/tfm/lib/knn/objects.rb	class Classification
+Example	/home/jrd/tfm/lib/knn/objects.rb	class Example
+KNN	/home/jrd/tfm/lib/knn/knn.rb	class KNN
+attributes	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :attributes, :classification
+calculate_distance_by_attributes	/home/jrd/tfm/lib/knn/knn.rb		def calculate_distance_by_attributes(t, e)
+classification	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :attributes, :classification
+classify	/home/jrd/tfm/lib/knn/knn.rb		 def classify(example)
+find_distances	/home/jrd/tfm/lib/knn/knn.rb		def find_distances(ex)
+find_mins_and_maxes	/home/jrd/tfm/lib/knn/methods.rb	def find_mins_and_maxes(set, atts)
+format	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min
+format	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min
+gather_votes	/home/jrd/tfm/lib/knn/knn.rb		def gather_votes(votes, pairs)
+getAttributes_for_knn	/home/jrd/tfm/lib/knn/methods.rb	def getAttributes_for_knn(filename)
+getInfo_for_knn	/home/jrd/tfm/lib/knn/methods.rb	def getInfo_for_knn(attributes, fileset)
+getMax	/home/jrd/tfm/lib/knn/methods.rb	def getMax(set, atts)
+getMin	/home/jrd/tfm/lib/knn/methods.rb	def getMin(set, atts)
+getSets_for_knn	/home/jrd/tfm/lib/knn/methods.rb	def getSets_for_knn(examples, proportion_training, proportion_test)
+get_distance	/home/jrd/tfm/lib/knn/knn.rb		def get_distance(indicator, row_from_training, example_to_classify)
+initMax	/home/jrd/tfm/lib/knn/methods.rb	def initMax 
+initMin	/home/jrd/tfm/lib/knn/methods.rb	def initMin 
+initialize	/home/jrd/tfm/lib/knn/objects.rb		def initialize(name, type, vals, format = nil)
+initialize	/home/jrd/tfm/lib/knn/objects.rb		def initialize(name, type, vals, format)
+initialize	/home/jrd/tfm/lib/knn/objects.rb		def initialize(attributes, classification = nil)
+initialize	/home/jrd/tfm/lib/knn/knn.rb		def initialize(option, train_data, test_data, atts, k_number_of_neighbours, options={})
+max	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min
+max	/home/jrd/tfm/lib/knn/objects.rb		attr_accessor :max, :min
+max	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min
+max	/home/jrd/tfm/lib/knn/objects.rb		attr_accessor :max, :min
+min	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min
+min	/home/jrd/tfm/lib/knn/objects.rb		attr_accessor :max, :min
+min	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min
+min	/home/jrd/tfm/lib/knn/objects.rb		attr_accessor :max, :min
+my_scramble	/home/jrd/tfm/lib/knn/methods.rb	def my_scramble(vector)
+name	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min
+name	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min
+normalize	/home/jrd/tfm/lib/knn/knn.rb		def normalize(set)
+pair_up	/home/jrd/tfm/lib/knn/knn.rb		def pair_up(distances)
+predict	/home/jrd/tfm/lib/knn/knn.rb		def predict(attributes)
+testing	/home/jrd/tfm/lib/knn/knn.rb		def testing
+type	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min
+type	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min
+vals	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min
+vals	/home/jrd/tfm/lib/knn/objects.rb		attr_reader :name, :vals, :type, :format#, :max, :min

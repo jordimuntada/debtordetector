@@ -1,0 +1,24 @@
+#represents an attribute to classify on
+#has a title and a list of possible values.
+class Attribute
+	def initialize(name, vals)
+	@name = name
+	@vals = vals
+	end
+
+	attr_reader :name, :vals
+end#end class Attribute
+
+#represents an example, currently used for both training and to hold new info
+#classification isn't used if not known
+class Example
+
+	#attributes is a map of attr_name => class
+	#classification is what the decision should be for the example
+	def initialize(attributes, classification = nil)
+	@attributes = attributes
+	@classification = classification
+	end
+
+	attr_reader :attributes, :classification
+end#end class Example

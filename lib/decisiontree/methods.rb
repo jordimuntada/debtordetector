@@ -1,0 +1,452 @@
+# METHODS USED TO READ FROM FILES AND GET DATA/INFORMATION
+def initMax (att)
+	att.max = MAX_DISCRETE_CONST
+	return att
+end
+
+def initMin (att)
+	att.min = MIN_DISCRETE_CONST
+	return att
+end
+
+def getMax(set, atts)
+	atts.each do |a|
+		if a.type == "continuous"
+			a = initMax(a)
+			i = 0
+			while i < set.count
+				# Next 2 lines are just applied in getMax because after its executation, set will be modified
+				## set[i].attributes[a.name][0]='' if set[i].attributes[a.name].include? ','
+				##puts "set[i].attributes["+a.name.to_s+"] ---> "+set[i].attributes[a.name].to_s
+				set[i].attributes[a.name][0]='' if set[i].attributes[a.name][0]=='"'
+				## set[i].attributes[a.name][-1]='' if set[i].attributes[a.name].include? ','
+				set[i].attributes[a.name][-1]='' if set[i].attributes[a.name][-1]=='"' # it should be -1
+				#puts "set[i].attributes[a.name] == " + set[i].attributes[a.name].to_s
+				a.max = set[i].attributes[a.name] if a.max.to_f < set[i].attributes[a.name].to_f
+				i+=1
+			end
+		end
+	end
+	return atts
+end
+
+def getMin(set, atts)
+	atts.each do |a|
+		if a.type == "continuous"
+			a = initMin(a)
+			i = 0
+			while i < set.count
+				#set[i].attributes[a.name][0]='' if set[i].attributes[a.name].include? ','
+				#set[i].attributes[a.name][-1]='' if set[i].attributes[a.name].include? ','
+				a.min = set[i].attributes[a.name] if a.min.to_f > set[i].attributes[a.name].to_f
+				i+=1
+			end
+		end
+	end
+	return atts
+end
+
+# Legend that will be assigned to each element of the set regarding their corresponding values.
+# VL = Very Low
+# L = Low
+# H = High
+# VH = Very High
+def discretize(set, atts, levels)
+	# First off, we get the max and min of each attributes in the matrix
+	atts = getMax(set, atts)
+	atts = getMin(set, atts)
+	atts.each do |a|
+		if a.type == "continuous"
+			if levels == 2
+				i = 0
+				diferencial = (a.max.to_f - a.min.to_f) / 2
+				while i < set.count
+					if set[i].attributes[a.name].to_f >= a.min.to_f and set[i].attributes[a.name].to_f < diferencial
+						set[i].attributes[a.name] = 'L'
+					else
+						if set[i].attributes[a.name].to_f >= diferencial and set[i].attributes[a.name].to_f <= a.max.to_f
+							set[i].attributes[a.name] = 'H'
+						else
+							puts "Problem while discretizing at LEVEL 2"
+						end
+					end
+					i+=1
+				end
+			else
+				if levels == 3
+					i = 0
+					diferencial = (a.max.to_f - a.min.to_f) / 3
+					while i < set.count
+						if set[i].attributes[a.name].to_f >= a.min.to_f and set[i].attributes[a.name].to_f < diferencial
+							set[i].attributes[a.name] = 'L'
+						else
+							if set[i].attributes[a.name].to_f >= diferencial and set[i].attributes[a.name].to_f < diferencial * 2
+								set[i].attributes[a.name] = 'M'
+							else
+								if set[i].attributes[a.name].to_f >= diferencial * 2 and set[i].attributes[a.name].to_f <= a.max.to_f
+									set[i].attributes[a.name] = 'H'
+								else
+									puts "Problem while discretizing at LEVEL 3"
+								end
+							end
+						end
+						i+=1
+					end
+				else
+					if levels == 4
+						i = 0
+						diferencial = (a.max.to_f - a.min.to_f) / 4
+						#puts "-- Discretize - borders --"
+						#puts "-- VL = "+diferencial.to_s
+						#puts "-- L = "+(diferencial*2).to_s
+						#puts "-- H = "+(diferencial*3).to_s
+						#puts "-- VH = "+(diferencial*4).to_s			
+						while i < set.count
+							if set[i].attributes[a.name].to_f >= a.min.to_f and set[i].attributes[a.name].to_f < diferencial
+								set[i].attributes[a.name] = 'VL'
+							else
+								if set[i].attributes[a.name].to_f >= diferencial and set[i].attributes[a.name].to_f < diferencial * 2
+									set[i].attributes[a.name] = 'L'
+								else
+									if set[i].attributes[a.name].to_f >= diferencial * 2 and set[i].attributes[a.name].to_f < diferencial * 3
+										set[i].attributes[a.name] = 'H'
+									else
+										if set[i].attributes[a.name].to_f >= diferencial * 3 and set[i].attributes[a.name].to_f <= a.max.to_f
+											set[i].attributes[a.name] = 'VH'
+										else
+											puts "Problem while discretizing at LEVEL 4"
+										end
+									end
+								end
+							end
+							i+=1
+						end
+					else
+						puts "It is impossible to accept "+levels.to_s+" levels of discretization"
+					end
+				end
+			end
+		end
+	end
+	return set
+end
+
+def getInfo(attributes, fileset)
+	# handle examples, values should be in same order as attributes
+	set = []
+	aux = 0
+	file = File.new(fileset, 'r')
+	file.each_line do |line|
+		if aux == 0
+			basura = line.chomp.split(';').map{|s| s.strip}
+			aux = 1
+		else
+			map = {}
+			atts = line.chomp.split(';').map{|s| s.strip }
+      
+			classification = atts.pop
+			# if the number of attributes read from Info File ranges from 0 to amount of attributes in Atts File then
+			# the example just read is put in the overall set 
+			if atts.count > 0 and atts.count < (attributes.count + 1)
+        
+				attributes.each do |at|
+          #att_vals = at.vals.shuffle
+          # This snippet of code takes care of missing values. It replaces "?" by "random attribute value"
+          att_previous = atts.shift
+          att_previous = at.vals.shuffle.pop if att_previous == "?"
+          # End of missing values snippet
+					map[at.name] = erase_quotation_marks(att_previous)
+				end
+				set << Example.new(map, erase_quotation_marks(classification))
+			end
+		end
+		# break if file.lineno > 20 #to limit the number of row readings
+  end
+	return set
+end
+
+def getAttributes(levels, fileatt)
+	# handle attributes
+	attributes = []
+	File.open(fileatt, 'r').each_line do |line|
+		atts = line.chomp.split(';').map{|s| s.strip}
+		name = atts.shift.upcase
+		type = atts.shift
+		if type == "continuous"
+			#for continuous attributes; there are several range of levels: [VH,H,L,VL] , [H,M,L] , [H,L]
+			if levels == 2
+				atts << "H" << "L"
+			else
+				if levels == 3
+					atts << "H" << "M" << "L"
+				else
+					atts << "VH" << "H" << "L" << "VL"
+				end
+			end
+		end
+		i=0
+		while i<atts.count 
+			atts[i]=atts[i].upcase
+			i += 1
+		end
+		attributes << Attribute.new(name, type, atts)
+	end
+	classif = attributes.pop
+	puts "classif = "+classif.vals.to_s
+	info_classification = Classification.new(classif.name, classif.type, classif.vals)
+	return attributes,info_classification
+end
+
+def my_scramble(vector)
+	new_vector = []
+	front_index = 0
+	back_index = vector.length-1
+
+	while front_index <= back_index
+	  new_vector << vector[front_index]
+	  front_index += 1
+	  if front_index <= back_index
+	   new_vector << vector[back_index]
+	    back_index -= 1
+	  end
+	end
+	return new_vector
+end
+
+def getSets(examples, proportion_training, proportion_test)
+	trainingset = Array.new
+	training_final = Array.new
+	testset = Array.new
+	test_final = Array.new
+	part = Array.new
+	partitions = Array.new
+
+	total_examples = examples.size # first we need all the amount of examples counted
+	
+	# we calculate a concrete partition by CROSS_VALIDATION_PARTITIONS_CONST
+	number_partition = total_examples / CROSS_VALIDATION_PARTITIONS_CONST
+	count = 0
+	while count < CROSS_VALIDATION_PARTITIONS_CONST
+		part = []
+		acumulador = 0
+		while acumulador < number_partition
+			part << examples.pop
+			acumulador += 1
+		end
+		partitions << part
+		count += 1
+	end
+  partitions = partitions.shuffle
+	#partitions=my_scramble(partitions)
+
+	return partitions
+  #return training_final, test_final
+end
+
+def getSets_by_proportions(examples, proportion_training, proportion_test)
+	trainingset = Array.new
+	training_final = Array.new
+	testset = Array.new
+	test_final = Array.new
+	part = Array.new
+	partitions = Array.new
+
+	total_examples = examples.size # first we need all the amount of examples counted
+	
+	# we calculate a concrete partition by CROSS_VALIDATION_PARTITIONS_CONST
+	number_partition = total_examples / CROSS_VALIDATION_PARTITIONS_CONST
+	count = 0
+	while count < CROSS_VALIDATION_PARTITIONS_CONST
+		part = []
+		acumulador = 0
+		while acumulador < number_partition
+			part << examples.pop
+			acumulador += 1
+		end
+		partitions << part
+		count += 1
+	end
+	partitions = partitions.shuffle
+
+	count = 0
+	initial_border = total_examples - proportion_test
+	while initial_border < total_examples
+		testset << partitions.pop
+		initial_border += number_partition
+	end
+	trainingset = partitions
+	
+	testset.each do |test|
+		test_final.concat(test)
+	end
+	trainingset.each do |train|
+		training_final.concat(train)
+	end
+	
+	return training_final, test_final
+end
+##########################################################
+
+# erase '"' from the string (at the start and end of string)
+def erase_quotation_marks(str)
+	str[0] = "" if str[0] == '"'
+	str[-1] = "" if str[-1] == '"'
+	return str
+end
+
+# checks if all examples have the same classification
+def one_classification? (set)
+    return true if set.empty?
+    c = set[0].classification
+    set.each do |s|
+        if s.classification != c
+            return false
+        end
+    end
+    return true
+end # end one_classification?
+
+def getClassification (ex)
+	#return -1 if ex.empty?	
+	return ex.classification
+end
+
+# finds the most popular classification among the examples
+def most_popular_classification(set)
+	#puts "most_popular_class = " +set.group_by{|s| s.classification}.sort[0].to_s
+	#return set.group_by{|s| s.classification}.sort[0]
+	set.group_by{|s| s.classification}.sort[0]
+end # end most_popular_classification
+
+def check_if_exists_0(v) # v: a vector of floats
+	i = 0
+	flag = false
+	while i < v.size
+		if v[i] == 0.to_f
+			flag = true
+		end
+		i += 1
+	end
+	return flag
+end
+
+def backed_up_error(set, frequencies, info_classif, number_of_examples_in_set, majority_class_in_set, number_of_examples_in_set_belong_to_majority_class, number_of_classes)
+	error = 0
+	#puts "freqs = "+frequencies.to_s
+	info_classif.vals.each_with_index do |c,i|
+		number_of_examples_in_set_belong_to_a_class = set.find_all {|e| e.classification == info_classif.vals[i] }.size
+		node_error = ( ( number_of_examples_in_set - number_of_examples_in_set_belong_to_a_class + number_of_classes - 1 ).to_f / ( number_of_examples_in_set + number_of_classes ).to_f )
+		error += (frequencies[i].to_f)*(node_error).to_f
+	end
+	#puts "backup error = "+error.to_s
+	return error
+end
+
+# calculates the entropy regarding classification for the given examples
+def entropy_for_error_estimation(set, information_classification)
+	total = set.size # total amount of examples in set
+	classification_vector = Array.new(information_classification.vals) # get all classifications to divide on
+	# find number matching for each classification
+	num_p = Array.new
+
+	classification_vector.each do |c|
+		# reading straight from "set" compells us to add '"' around c because STRINGS from set come with '"' around
+		num_p << set.find_all{|s| s.classification == c}.size.to_f # searching all examples that matches and counting them
+	end
+	################## FILLING UP THE FREQUENCIES ARRAY #######################
+	p = Array.new
+	i = 0
+	until i == classification_vector.count
+	   p << num_p[i]/total.to_f # probability of matching = ratio of matches to total num examples
+	   i += 1
+	end
+	###########################################################################
+	return p
+end # end entropy
+
+# calculates the entropy regarding classification for the given examples
+def entropy(set,information_classification)
+	total = set.size # total amount of examples in set
+	classification_vector = Array.new(information_classification.vals) # get all classifications to divide on
+	# find number matching for each classification
+	num_p = Array.new
+
+	classification_vector.each do |c|
+		# reading straight from "set" compells us to add '"' around c because STRINGS from set come with '"' around
+		num_p << set.find_all{|s| s.classification == '"'+c+'"'}.size.to_f # searching all examples that matches and counting them
+	end
+	#################################################################
+	################## CALCULATION OF ENTROPY #######################
+	#################################################################
+	p = Array.new
+	i = 0
+	until i == classification_vector.count
+	   p << num_p[i]/total # probability of matching = ratio of matches to total num examples
+	   i += 1
+	end
+	# checking if sum of all proportions is under 1 in order to avoid NAN/-infinity with log2(0)
+	if (p.inject{|sum,x| sum + x } < VALUE_TO_PREVENT_NaN_CONST) or check_if_exists_0(p)
+		return 0
+	end
+	entropy = 0
+	i = 0
+	until i == classification_vector.count
+		entropy = entropy + (p[i]*Math.log2(p[i]))
+		i += 1
+	end
+	entropy = - entropy
+	######################################################################
+	################### END OF ENTROPY CALCULATION #######################
+	######################################################################
+	return entropy
+end # end entropy
+
+# calculates the amount of information that would be gained
+# from splitting examples over the attribute
+def info_gain(atts, set, i_class)
+	# get entropy before split
+	current_entropy = entropy(set, i_class)
+	total = set.size
+	# for this attribute, group examples by possible values
+	groups = set.group_by{|s| s.attributes['"'+atts.name+'"']}
+
+	# sum up entropy of each potential branch, subtract from
+	# current entropy to find gain
+	return current_entropy - groups.values.inject(0) do |sum, group|
+		prop = group.size.to_f/set.size
+		sum + (prop * entropy(group, i_class))
+	end
+end # end info_gain
+
+# finds the attribute to divide examples over which provides the
+# most information gain.
+def best_attribute(set, atts, i_class)
+	# get attribute providing highest info_gain
+	#gain = Array.new
+	#atts.each do |a| gain << info_gain(a, set, i_class) end
+	#puts "## max gain --> "+gain.max.to_s
+	#return gain.max
+	atts.sort_by { |a| info_gain(a, set, i_class) }[-1]
+end # end best_attribute
+
+def several_tests(option, train, test, attributes, info_class)
+	trees = []
+	accuracy = []
+	error = []
+	i = 0
+	while i < (attributes.count * NUMBER_OF_DIFFERENT_LEVEL_TREES_CONST).to_i
+		#def initialize(set, attributes, constraint, info_classif)
+		trees[i] = DecisionTree.new(option, train, test, attributes, info_class, attributes.count - i)
+		File.new("tree"+(attributes.count - i).to_s+".txt", "w+")
+
+		accuracy[i],error[i] = trees[i].testing
+
+		i += 1
+	end
+	i = 0
+	while i < (attributes.count * NUMBER_OF_DIFFERENT_LEVEL_TREES_CONST).to_i
+		puts "Accuracy - "+ (attributes.count - i).to_s + " = " +accuracy[i].to_s
+		i += 1
+	end
+	return accuracy.max,trees[accuracy.index(accuracy.compact.max)] # returns the tree with the maximum accuracy
+end
